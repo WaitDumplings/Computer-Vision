@@ -3,7 +3,7 @@ import torch.nn as nn
 
 
 class AlexNet(nn.Module):
-    def __init__(self, num_class=1000, init_wiehgt=False):
+    def __init__(self, num_class=1000, init_weight=False):
         super(AlexNet, self).__init__()
         self.CNN = nn.Sequential(
             nn.Conv2d(3, 48, kernel_size=11, stride=4, padding = 2),
@@ -29,7 +29,7 @@ class AlexNet(nn.Module):
             nn.Linear(2048, num_class)
         )
 
-        if init_wiehgt:
+        if init_weight:
             self._initialize_weights()
     def forward(self, x):
         x = self.CNN(x)
