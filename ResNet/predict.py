@@ -6,44 +6,44 @@ from PIL import Image
 from torchvision import transforms
 import matplotlib.pyplot as plt
 
-from model import AlexNet
+from model import resnet34
 
 
 def main():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     data_transform = transforms.Compose(
-        [transforms.Resize((224, 224)),
+        [transforms.Resize(256),
+         transforms.CenterCrop(224),
          transforms.ToTensor(),
-         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
 
     # load image
-    img_path = "/Users/maojietang/Downloads/tulip.jpg"
+    img_path = "/Users/maojietang/Downloads/tulips.jpg"
     assert os.path.exists(img_path), "file: '{}' dose not exist.".format(img_path)
     img = Image.open(img_path)
-
     plt.imshow(img)
-    plt.xlabel('AlexNet')
     # [N, C, H, W]
     img = data_transform(img)
     # expand batch dimension
     img = torch.unsqueeze(img, dim=0)
 
     # read class_indict
-    json_path = './class_indices.json'
+    json_path = './class_label.json'
     assert os.path.exists(json_path), "file: '{}' dose not exist.".format(json_path)
 
     json_file = open(json_path, "r")
     class_indict = json.load(json_file)
 
     # create model
-    model = AlexNet(num_class=5).to(device)
+    model = resnet34(num_classes=5).to(device)
 
     # load model weights
-    weights_path = "./AlexNet.pth"
+    weights_path = "./ResNet34-2.pth"
     assert os.path.exists(weights_path), "file: '{}' dose not exist.".format(weights_path)
-    model.load_state_dict(torch.load(weights_path, map_location=torch.device('cpu')))
+    model.load_state_dict(torch.load(weights_path, map_location=device))
 
+    # prediction
     model.eval()
     with torch.no_grad():
         # predict class

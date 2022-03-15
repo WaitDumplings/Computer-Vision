@@ -18,11 +18,12 @@ def main():
          transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
     # load image
-    img_path = "/Users/maojietang/Downloads/sunflower.jpeg"
+    img_path = "/Users/maojietang/Downloads/tulip.jpg"
     assert os.path.exists(img_path), "file: '{}' dose not exist.".format(img_path)
     img = Image.open(img_path)
 
     plt.imshow(img)
+    plt.xlabel('VGG')
     # [N, C, H, W]
     img = data_transform(img)
     # expand batch dimension
@@ -36,13 +37,13 @@ def main():
     class_indict = json.load(json_file)
 
     # create model
-    model_name = 'vgg11'
+    model_name = 'vgg16'
     model = vgg(model_name = model_name, num_classes=5).to(device)
 
     # load model weights
-    weights_path = "/Users/maojietang/Documents/Computer-Vision/VGG/VGG.pth"
+    weights_path = "/Users/maojietang/Documents/Computer-Vision/VGG/VGG16.pth"
     assert os.path.exists(weights_path), "file: '{}' dose not exist.".format(weights_path)
-    model.load_state_dict(torch.load(weights_path))
+    model.load_state_dict(torch.load(weights_path, map_location=torch.device('cpu')))
 
     model.eval()
     with torch.no_grad():
