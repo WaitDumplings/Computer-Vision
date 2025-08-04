@@ -38,18 +38,20 @@ class BottleNeck(nn.Module):
     def __init__(self, in_channel, out_channel, stride=1, downsample=None, **kwargs):
         super(BottleNeck, self).__init__()
         self.downsample = downsample
-        self.conv1 = nn.Conv2d(in_channels=in_channel, out_channel=out_channel,
+        self.conv1 = nn.Conv2d(in_channels=in_channel, out_channels=out_channel,
                                kernel_size=1, stride=1, bias=False)
         self.bn1 = nn.BatchNorm2d(out_channel)
-        self.relu = nn.ReLu(inplace=True)
+        # Bug1 nn.ReLu() -> nn.ReLU()
+        self.relu = nn.ReLU(inplace=True)
 
         self.conv2 = nn.Conv2d(in_channels=out_channel, out_channels=out_channel,
                                kernel_size=3, stride=stride, padding=1, bias=False)
         self.bn2 = nn.BatchNorm2d(out_channel)
 
-        self.conv3 = nn.Conv2d(in_channels=out_channel, out_channels=expansion*out_channel,
+        # Bug2 (self.)
+        self.conv3 = nn.Conv2d(in_channels=out_channel, out_channels=self.expansion*out_channel,
                                kernel_size=1, stride=1, bias=False)
-        self.bn3 = nn.BatchNorm2d(expansion*out_channel)
+        self.bn3 = nn.BatchNorm2d(self.expansion*out_channel)
 
     def forward(self, x):
         identity = x
@@ -65,7 +67,7 @@ class BottleNeck(nn.Module):
         out = self.relu(out)
 
         out = self.conv3(out)
-        out = self.bn3(x)
+        out = self.bn3(out) # Bug3 self.bn3(x) -> self.bn3(out)
         out += identity
         out = self.relu(out)
 
@@ -146,14 +148,12 @@ def resnet34(num_classes=1000, include_top=True):
     # https://download.pytorch.org/models/resnet34-333f7ec4.pth
     return ResNet(BasicBlock, [3, 4, 6, 3], num_classes=num_classes, include_top=include_top)
 
-
+# Bug4 Bottlenect -> BottleNeck
 def resnet50(num_classes=1000, include_top=True):
     # https://download.pytorch.org/models/resnet50-19c8e357.pth
-    return ResNet(Bottleneck, [3, 4, 6, 3], num_classes=num_classes, include_top=include_top)
+    return ResNet(BottleNeck, [3, 4, 6, 3], num_classes=num_classes, include_top=include_top)
 
 
 def resnet101(num_classes=1000, include_top=True):
     # https://download.pytorch.org/models/resnet101-5d3b4d8f.pth
-    return ResNet(Bottleneck, [3, 4, 23, 3], num_classes=num_classes, include_top=include_top)
-
-
+    return ResNet(BottleNeck, [3, 4, 23, 3], num_classes=num_classes, include_top=include_top)
